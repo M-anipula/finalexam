@@ -1,0 +1,72 @@
+#--------------------------
+#读取input.txt的数据
+data=open("input.txt")#打开input.txt文本
+load_data=data.read().split()#读取文件
+List_A=[]#存储从文本读取进来的数据
+for i in load_data:#将文本数据添加到列表List_A
+	List_A.append(i)
+List_A = [ float(x) for x in List_A]#将列表中的数据类型转换为float
+goods_number=int(List_A[0])#读取List_A的第一个元素，即物品的个数
+attribute_number=int(List_A[1])#读取List_A的第二个元素，即约束个数
+goods_value=List_A[3:goods_number+3]#读取各物品的价值
+print("物品数:",goods_number,"约束个数:",attribute_number)
+print("物品价值：",goods_value)
+#------------------------------
+del List_A[0:goods_number+3]#把读取到的商品数、属性个数以及商品价值删除，方便下面的数据读取操作
+List_A.reverse()#反转列表
+bounds=List_A[0:attribute_number]#读取约束
+bounds.reverse()
+print("约束值:",bounds)
+#------------------------------
+del List_A[0:attribute_number]#读取完限界条件后将其从列表中减去
+List_A.reverse()#恢复列表，列表中剩下属性的具体数值
+data.close()
+for j in range(0,attribute_number):
+	print("第",j+1,"行属性值:",List_A[j*goods_number:j*goods_number+goods_number])
+#------------------------------
+#找出满足各个约束条件的所有组合
+cur=0#记录当前放入属性值之和，用来判断是否超过约束
+n=goods_number#物品数量
+record_seq=[]#记录满足每个束的组合
+sequence=[0 for i in range(n)]#记录满足约束的组合
+def dfs(i):
+  global cur
+  if (i>=n):#遍历完所有物品，得到一个满足约束的组合
+        record_seq.append(sequence[:])#将物品的放入组合添加到列表record_seq中
+  else:
+    if (cur+w[i]<=c):#满足约束，继续寻找
+      sequence[i]=goods_value[i]#满足约束的物品的价值放到列表sequence中
+      cur+=w[i]
+      dfs(i+1)#继续寻找
+      cur-=w[i]#回溯上一层
+    sequence[i]=0#不满足约束，不放入
+    dfs(i+1)#继续寻找
+for m in range(0,attribute_number):#回溯找出满足各个约束条件的组合
+    c = bounds[m]
+    w=List_A[m*goods_number:m*goods_number+goods_number]
+    dfs(0)
+#-------------------------------
+#从record_seq中找出满足所有约束的组合
+size=len(record_seq)
+combination=[]#存放所有符合的组合
+value=[]#存放总价值
+#print(record_seq)
+for k in range(0,size):#遍历record_seq的组合
+    if(record_seq[k] in combination):#如果该组合已经存在列表combination，跳出该层循环
+        continue
+    elif(record_seq.count(record_seq[k])==attribute_number and record_seq[k] not in combination ):#如果组合出现的次数等于约束个数，说明该组合
+        val = sum(record_seq[k])#                                                                   满足所有约束条件，将它放入列表combination中，计算总价值放到列表value中
+        combination.append(record_seq[k])
+        value.append(val)
+        #print(val)
+    else:#如果该组合不存在列表combination中，出现的次数也不等与约束个数，跳出该层循环
+        continue
+del record_seq[:]
+#-------------------------------
+#计算最大值，并找出最大值的组合
+#print("\n")
+#print("符合所有约束的组合:",combination)
+max_value=max(value)#求出value中的最大值，该值是最优解
+index=value.index(max_value)#求出最大值元素的下标，用来读取组成最大值的组合
+#print("\n")
+print("最优解:",max_value,",组合:",combination[index])
